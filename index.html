@@ -37,21 +37,29 @@
     display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 18px;
   }
   h1{
-    font-size:16px; font-weight:650; letter-spacing:.2px; margin:0;
+    font-size:20px; font-weight:650; letter-spacing:.2px; margin:0;
   }
   h1 span{color:var(--accent)}
   .formula{
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size:12.5px; color:var(--dim);
+    font-size:15px; color:var(--dim);
   }
   .formula b{color:#a9c0d6; font-weight:500}
+  /* true subscripts/superscripts in running text */
+  .formula sub, .formula sup,
+  .chip sub, .chip sup,
+  .note sub, .note sup{
+    font-size:.72em; line-height:0;
+  }
+  .formula sub, .chip sub, .note sub{vertical-align:-.22em}
+  .formula sup, .chip sup, .note sup{vertical-align:.42em}
 
-  .chips{ margin-left:auto; display:flex; flex-wrap:wrap; gap:6px; }
+  .chips{ margin-left:auto; display:flex; flex-wrap:wrap; gap:7px; }
   .chip{
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size:11.5px; color:var(--dim);
+    font-size:14px; color:var(--dim);
     border:1px solid var(--line); background:#0c1420;
-    padding:3px 8px; border-radius:999px; font-variant-numeric: tabular-nums;
+    padding:4px 10px; border-radius:999px; font-variant-numeric: tabular-nums;
     white-space:nowrap;
   }
   .chip b{color:#8fb2cf; font-weight:500}
@@ -68,17 +76,20 @@
     border:1px solid var(--line); border-radius:14px; overflow:hidden;
     background:linear-gradient(180deg, var(--panel-a), var(--panel-b));
     box-shadow: 0 18px 40px -28px #000, inset 0 1px 0 rgba(255,255,255,.03);
+    display:flex; flex-direction:column;
   }
-  .panel canvas{display:block; width:100%; height:100%}
+  .panel canvas{display:block; width:100%; height:100%; flex:1 1 auto; min-height:0}
   .tag{
     position:absolute; top:10px; left:14px; pointer-events:none;
-    font-size:11px; letter-spacing:.10em; text-transform:uppercase;
-    color:var(--dim2);
+    font-size:13px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--dim2); z-index:1;
   }
+  /* in flow, not overlaid: the canvas gives up the space so labels never collide */
   .note{
-    position:absolute; bottom:9px; left:14px; right:14px; pointer-events:none;
+    flex:0 0 auto;
+    padding:5px 14px 8px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size:10.5px; color:var(--dim2);
+    font-size:13px; line-height:1.35; color:var(--dim2);
   }
   .note em{font-style:normal; color:#6f8da8}
   .note .k{color:#8fb2cf}
@@ -88,10 +99,10 @@
     display:flex; flex-wrap:wrap; align-items:center; gap:10px 20px;
   }
   button{
-    font:inherit; font-size:12.5px; font-weight:550;
+    font:inherit; font-size:15px; font-weight:550;
     color:var(--ink); background:#111c28;
     border:1px solid #26384a; border-radius:9px;
-    padding:7px 15px; cursor:pointer;
+    padding:8px 17px; cursor:pointer;
     transition: background .15s, border-color .15s, transform .06s;
   }
   button:hover{background:#16232f; border-color:#33506a}
@@ -101,45 +112,45 @@
 
   .ctrl{
     display:flex; align-items:center; gap:8px;
-    font-size:12px; color:var(--dim);
+    font-size:15px; color:var(--dim);
   }
   .ctrl .lbl{
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    color:#93aec6; min-width:52px;
+    color:#93aec6; min-width:56px;
   }
   .ctrl .val{
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    color:var(--accent); min-width:44px; font-variant-numeric: tabular-nums;
+    color:var(--accent); min-width:52px; font-variant-numeric: tabular-nums;
   }
   input[type=range]{
     -webkit-appearance:none; appearance:none;
-    width:118px; height:3px; border-radius:3px;
+    width:132px; height:4px; border-radius:3px;
     background:#22333f; outline:none; cursor:pointer;
   }
   input[type=range]::-webkit-slider-thumb{
-    -webkit-appearance:none; width:13px; height:13px; border-radius:50%;
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
     background:var(--accent); border:2px solid #071019;
     box-shadow:0 0 10px rgba(79,216,255,.55);
   }
   input[type=range]::-moz-range-thumb{
-    width:11px; height:11px; border-radius:50%;
+    width:14px; height:14px; border-radius:50%;
     background:var(--accent); border:2px solid #071019;
   }
-  .chk{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--dim); cursor:pointer}
-  .chk input{accent-color:#4fd8ff}
+  .chk{display:flex; align-items:center; gap:7px; font-size:15px; color:var(--dim); cursor:pointer}
+  .chk input{accent-color:#4fd8ff; width:15px; height:15px}
 
   @media (max-width: 900px){
-    main{grid-template-columns:1fr; grid-template-rows:repeat(4, minmax(178px,1fr))}
-    .panel{min-height:178px}
+    main{grid-template-columns:1fr; grid-template-rows:repeat(4, minmax(168px,1fr))}
+    .panel{min-height:168px}
     .chips{margin-left:0}
   }
   @media (max-width: 620px){
     header{padding:12px 14px 8px}
-    h1{font-size:14.5px}
-    .formula{font-size:11.5px}
+    h1{font-size:17px}
+    .formula{font-size:13px}
     main{padding:4px 14px 10px; gap:10px}
     footer{padding:4px 14px 14px; gap:8px 14px}
-    input[type=range]{width:96px}
+    input[type=range]{width:104px}
   }
   /* stacked layout on a short viewport: shrink panels so the page still fits */
   @media (max-width: 900px) and (max-height: 820px){
@@ -147,10 +158,10 @@
     .panel{min-height:140px}
   }
   @media (max-width: 480px){
-    main{grid-template-rows:repeat(4, minmax(124px,1fr))}
-    .panel{min-height:124px}
+    main{grid-template-rows:repeat(4, minmax(136px,1fr))}
+    .panel{min-height:136px}
     .chips{gap:4px}
-    .chip{font-size:10.5px; padding:2px 6px}
+    .chip{font-size:12px; padding:3px 7px}
   }
 </style>
 </head>
@@ -158,11 +169,11 @@
 
 <header>
   <h1>Underdamped oscillation <span>·</span> ζ &lt; 1</h1>
-  <div class="formula">x(t) = x₀ e<sup>−γt</sup> cos(ω_d t),&nbsp; ω_d = √(ω₀² − γ²),&nbsp; γ = ζω₀</div>
+  <div class="formula">x(t) = x₀ e<sup>−γt</sup> cos(ω<sub>d</sub>t),&nbsp; ω<sub>d</sub> = √(ω₀² − γ²),&nbsp; γ = ζω₀</div>
   <div class="chips">
     <span class="chip"><b>γ</b> <i id="rG">–</i> s⁻¹</span>
-    <span class="chip"><b>ω_d</b> <i id="rWd">–</i> rad/s</span>
-    <span class="chip"><b>T_d</b> <i id="rTd">–</i> s</span>
+    <span class="chip"><b>ω<sub>d</sub></b> <i id="rWd">–</i> rad/s</span>
+    <span class="chip"><b>T<sub>d</sub></b> <i id="rTd">–</i> s</span>
     <span class="chip"><b>Q</b> <i id="rQ">–</i></span>
     <span class="chip"><b>δ</b> <i id="rDl">–</i></span>
     <span class="chip"><b>E/E₀</b> <i id="rE">–</i></span>
@@ -174,13 +185,13 @@
   <section class="panel">
     <div class="tag">mass–spring–damper</div>
     <canvas id="cRig"></canvas>
-    <div class="note"><em style="color:#4fd8ff">F_s = −kx</em> restoring &nbsp;·&nbsp; <em style="color:#ffb45c">F_d = −bv</em> damping</div>
+    <div class="note"><em style="color:#4fd8ff">F<sub>s</sub> = −kx</em> restoring &nbsp;·&nbsp; <em style="color:#ffb45c">F<sub>d</sub> = −bv</em> damping</div>
   </section>
 
   <section class="panel">
     <div class="tag">displacement x(t)</div>
     <canvas id="cX"></canvas>
-    <div class="note">solid <em>—</em> x(t) &nbsp;·&nbsp; dashed <em>—</em> envelope ±x₀e<sup>−γt</sup> &nbsp;·&nbsp; dots <em>●</em> successive peaks, ratio <span class="k">e<sup>−γT_d</sup></span></div>
+    <div class="note">solid <em>—</em> x(t) &nbsp;·&nbsp; dashed <em>—</em> ±x₀e<sup>−γt</sup> &nbsp;·&nbsp; dots <em>●</em> peaks, ratio <span class="k">e<sup>−γT<sub>d</sub></sup></span></div>
   </section>
 
   <section class="panel">
@@ -311,9 +322,43 @@
     ctx.closePath(); ctx.fill();
     ctx.restore();
   }
+  /* draw a symbol with a real subscript, e.g. labelSub(ctx,'F','s',...) -> F with subscript s.
+     Canvas has no <sub>, so the tail is drawn smaller and offset down. */
+  function labelSub(ctx, head, sub, x, y, align) {
+    // ctx.font looks like 'italic 500 11.5px ui-monospace, ...' — parseFloat would return NaN
+    const m = /([\d.]+)px/.exec(ctx.font);
+    const fs = m ? parseFloat(m[1]) : 11.5;
+    const subFs = fs * 0.78;
+    const headFont = ctx.font;
+    const headW = ctx.measureText(head).width;
+    const subFont = headFont.replace(/[\d.]+px/, subFs.toFixed(1) + 'px');
+    // callers pass a mid-line y; alphabetic baseline sits a little lower
+    const baseY = y + fs * 0.34;
+    ctx.save();
+    if (align === 'left') {
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      ctx.font = headFont;
+      ctx.fillText(head, x, baseY);
+      ctx.font = subFont;
+      ctx.fillText(sub, x + headW + 0.5, baseY + fs * 0.30);
+    } else {
+      // right-aligned: measure both pieces so the pair ends at x
+      ctx.font = subFont;
+      const subW = ctx.measureText(sub).width;
+      const startX = x - headW - subW - 0.5;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      ctx.font = headFont;
+      ctx.fillText(head, startX, baseY);
+      ctx.font = subFont;
+      ctx.fillText(sub, startX + headW + 0.5, baseY + fs * 0.30);
+    }
+    ctx.restore();
+  }
   // axis frame shared by the two time-series panels
   function timeAxes(ctx, w, h, T, yTicks, yLabel, yFmt) {
-    const pad = { l: 56, r: 20, t: 26, b: 38 };
+    const pad = { l: 68, r: 22, t: 30, b: 46 };
     const x0px = pad.l, x1px = w - pad.r;
     const y0px = pad.t, y1px = h - pad.b;
     const lo = yTicks[0], hi = yTicks[yTicks.length - 1];
@@ -321,7 +366,7 @@
     const PY = v => y1px - ((v - lo) / (hi - lo)) * (y1px - y0px);
 
     ctx.save();
-    ctx.font = '11px ui-monospace, Menlo, Consolas, monospace';
+    ctx.font = '14px ui-monospace, Menlo, Consolas, monospace';
 
     // horizontal grid
     ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
@@ -530,7 +575,7 @@
     ctx.lineTo(massL + massW - 8, massTop + 7);
     ctx.stroke();
     ctx.fillStyle = 'rgba(60,28,0,0.72)';
-    ctx.font = '600 ' + Math.round(massH * 0.30) + 'px ui-sans-serif, system-ui, sans-serif';
+    ctx.font = '600 ' + Math.round(massH * 0.34) + 'px ui-sans-serif, system-ui, sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('m', massCx, yc + 1);
     ctx.restore();
@@ -542,7 +587,7 @@
     const fdPx = -vNorm * scale * 0.85;                        // F_d = −b v
 
     ctx.save();
-    ctx.font = 'italic 500 11.5px ui-monospace, Menlo, Consolas, monospace';
+    ctx.font = 'italic 500 14px ui-monospace, Menlo, Consolas, monospace';
     ctx.textBaseline = 'middle';
 
     // baseline through the mass
@@ -555,8 +600,8 @@
       arrow(ctx, massCx, fRow, massCx + fsPx, fRow, 7, 'rgba(79,216,255,0.92)', 1.9);
       ctx.shadowBlur = 0;
       ctx.fillStyle = 'rgba(150,220,245,0.95)';
-      ctx.textAlign = fsPx >= 0 ? 'left' : 'right';
-      ctx.fillText('F_s', massCx + fsPx + (fsPx >= 0 ? 8 : -8), fRow);
+      const lx = massCx + fsPx + (fsPx >= 0 ? 8 : -8);
+      labelSub(ctx, 'F', 's', lx, fRow, fsPx >= 0 ? 'left' : 'right');
     }
     if (P.showVel && Math.abs(fdPx) > 5) {
       const fRow2 = fRow - 24;
@@ -564,8 +609,8 @@
       arrow(ctx, massCx, fRow2, massCx + fdPx, fRow2, 7, 'rgba(255,180,92,0.92)', 1.9);
       ctx.shadowBlur = 0;
       ctx.fillStyle = 'rgba(255,205,150,0.95)';
-      ctx.textAlign = fdPx >= 0 ? 'left' : 'right';
-      ctx.fillText('F_d', massCx + fdPx + (fdPx >= 0 ? 8 : -8), fRow2);
+      const lx2 = massCx + fdPx + (fdPx >= 0 ? 8 : -8);
+      labelSub(ctx, 'F', 'd', lx2, fRow2, fdPx >= 0 ? 'left' : 'right');
     }
     ctx.restore();
 
@@ -580,10 +625,10 @@
       if (Math.abs(vLen) > 4) {
         arrow(ctx, massCx, vy, massCx + vLen, vy, 6, 'rgba(190,225,245,0.78)', 1.5);
       }
-      ctx.font = 'italic 500 11.5px ui-monospace, Menlo, Consolas, monospace';
+      ctx.font = 'italic 500 14px ui-monospace, Menlo, Consolas, monospace';
       ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
       ctx.fillStyle = 'rgba(150,180,205,0.8)';
-      ctx.fillText('v', massCx + vLen + (vLen >= 0 ? 14 : -14), vy + 4);
+      ctx.fillText('v', massCx + vLen + (vLen >= 0 ? 16 : -16), vy + 4);
       ctx.restore();
     }
 
@@ -595,7 +640,7 @@
     }
     ctx.fillStyle = 'rgba(79,216,255,0.9)';
     ctx.beginPath(); ctx.arc(xEq, ay, 2.4, 0, Math.PI * 2); ctx.fill();
-    ctx.font = 'italic 500 12px ui-monospace, Menlo, Consolas, monospace';
+    ctx.font = 'italic 500 14px ui-monospace, Menlo, Consolas, monospace';
     ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
     ctx.fillStyle = 'rgba(150,200,225,0.85)';
     ctx.fillText('x', (massCx + xEq) / 2, ay - 6);
@@ -658,9 +703,9 @@
         ctx.setLineDash([]);
         const ratio = a1 > 1e-9 ? a2 / a1 : 0;
         ctx.fillStyle = 'rgba(255,205,150,0.9)';
-        ctx.font = '11px ui-monospace, Menlo, Consolas, monospace';
+        ctx.font = '14px ui-monospace, Menlo, Consolas, monospace';
         ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-        const lx = Math.min(A.PX(t2) + 8, A.x1px - 96);
+        const lx = Math.min(A.PX(t2) + 8, A.x1px - 112);
         ctx.fillText('ratio ' + ratio.toFixed(3), lx, y2 - 4);
       }
       ctx.restore();
@@ -771,7 +816,7 @@
       ctx.restore();
     }
 
-    /* total-energy guide: E₀e^(−2γt) */
+    /* total-energy guide: E0 * exp(-2*gamma*t) */
     if (P.showEnv) {
       ctx.save();
       ctx.setLineDash([5, 6]);
@@ -788,7 +833,7 @@
     }
 
     /* live stacked bar at the current time */
-    const bx = A.x1px - 68, bw = 44, byTop = A.y0px + 4, byBot = A.y1px - 6;
+    const bx = A.x1px - 76, bw = 50, byTop = A.y0px + 4, byBot = A.y1px - 6;
     const bh = byBot - byTop;
     const pN = Math.min(1.02, pe(P.t) * norm), kN = Math.min(1.02, ke(P.t) * norm);
     const tot = Math.max(1e-6, pN + kN);
@@ -803,10 +848,10 @@
     ctx.fillRect(bx + 1, byBot - kHh, bw - 2, kHh);
     ctx.fillStyle = 'rgba(255,180,92,0.55)';
     ctx.fillRect(bx + 1, byBot - kHh - pHh, bw - 2, pHh);
-    ctx.font = '10px ui-monospace, Menlo, Consolas, monospace';
+    ctx.font = '13px ui-monospace, Menlo, Consolas, monospace';
     ctx.fillStyle = 'rgba(150,180,205,0.85)';
     ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-    ctx.fillText((tot * 100).toFixed(0) + '%', bx + bw / 2, byTop - 4);
+    ctx.fillText((tot * 100).toFixed(0) + '%', bx + bw / 2, byTop - 5);
     ctx.restore();
   }
 
@@ -816,7 +861,7 @@
     const { ctx, w, h } = PP;
     ctx.clearRect(0, 0, w, h);
 
-    const pad = { l: 46, r: 18, t: 22, b: 34 };
+    const pad = { l: 56, r: 22, t: 26, b: 42 };
     const cx = (pad.l + (w - pad.r)) / 2;
     const cy = (pad.t + (h - pad.b)) / 2;
     const half = Math.max(20, Math.min((w - pad.l - pad.r) / 2, (h - pad.t - pad.b) / 2) - 4);
@@ -840,7 +885,7 @@
     ctx.moveTo(X(-LIM), Y(0)); ctx.lineTo(X(LIM), Y(0));
     ctx.moveTo(X(0), Y(-LIM)); ctx.lineTo(X(0), Y(LIM));
     ctx.stroke();
-    ctx.font = '11px ui-monospace, Menlo, Consolas, monospace';
+    ctx.font = '14px ui-monospace, Menlo, Consolas, monospace';
     ctx.fillStyle = 'rgba(140,168,192,0.8)';
     ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
     ctx.fillText('x/x₀', X(LIM), Y(0) - 4);
