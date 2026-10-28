@@ -215,7 +215,7 @@
   <section class="panel">
     <div class="tag">energy budget</div>
     <canvas id="cE"></canvas>
-    <div class="note"><em style="color:#ffb45c">PE = ½ω₀²x²</em> &nbsp;·&nbsp; <em style="color:#4fd8ff">KE = ½v²</em> &nbsp;·&nbsp; <em style="color:#dbe7f4">E = PE + KE</em></div>
+    <div class="note"><em style="color:#ffb45c">PE = ½ω₀²x²</em> · <em style="color:#4fd8ff">KE = ½v²</em> · <em style="color:#dbe7f4">E = PE+KE</em><span class="opt"> · dashed <em>—</em> guide E₀e<sup>−2γt</sup></span></div>
   </section>
 
   <section class="panel">
@@ -873,11 +873,35 @@
       ctx.restore();
     }
 
-    /* E₀e^(−2γt) is exact only for the underdamped case, so draw it only there */
+    /* Energy guides for the oscillatory case.
+       E/E₀ is NOT simply e^(−2γt): writing E = E₀e^(−2γt)·μ(ω_d t) gives
+         μ(θ) = 1 + a sin2θ + 2a² sin²θ,   a = γ/ω_d,
+       so the true energy oscillates about the decaying guide and meets it only
+       at the peaks (θ = nπ), i.e. at t = nT_d.  The band drawn here is the exact
+       envelope of that oscillation, μ_min..μ_max = 1 + a² ∓ a√(1+a²). */
     if (P.showEnv && D.regime === 'under') {
+      const a  = D.g / Math.max(D.kappa, 1e-9);
+      const rt = Math.sqrt(1 + a * a);
+      const muMax = 1 + a * a + a * rt;
+      const muMin = 1 + a * a - a * rt;
+
       ctx.save();
+      /* exact envelope of the wobble */
+      ctx.fillStyle = 'rgba(120,170,210,0.075)';
+      ctx.beginPath();
+      for (let i = 0; i <= 200; i++) {
+        const t = (i / 200) * T;
+        ctx.lineTo(A.PX(t), A.PY(Math.min(1.06, muMax * Math.exp(-2 * D.g * t))));
+      }
+      for (let i = 200; i >= 0; i--) {
+        const t = (i / 200) * T;
+        ctx.lineTo(A.PX(t), A.PY(muMin * Math.exp(-2 * D.g * t)));
+      }
+      ctx.closePath(); ctx.fill();
+
+      /* the decaying guide the energy rides on */
       ctx.setLineDash([5, 6]);
-      ctx.strokeStyle = 'rgba(120,170,210,0.34)';
+      ctx.strokeStyle = 'rgba(120,170,210,0.40)';
       ctx.lineWidth = 1.2;
       ctx.beginPath();
       for (let i = 0; i <= 200; i++) {
