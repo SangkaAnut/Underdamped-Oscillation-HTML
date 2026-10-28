@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Underdamped Oscillation — mass on a spring</title>
+<title>Damped oscillation — mass on a spring</title>
 <style>
   :root{
     --bg:#070a0f;
@@ -44,7 +44,6 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size:15px; color:var(--dim);
   }
-  .formula b{color:#a9c0d6; font-weight:500}
   /* true subscripts/superscripts in running text */
   .formula sub, .formula sup,
   .chip sub, .chip sup,
@@ -93,10 +92,18 @@
   }
   .note em{font-style:normal; color:#6f8da8}
   .note .k{color:#8fb2cf}
+  .note .opt{display:inline}
+  /* two columns at <=1180px leave the panels too narrow for the optional tail */
+  @media (max-width: 1180px){
+    .note .opt{display:none}
+  }
+  @media (max-width: 700px){
+    .note{font-size:12px}
+  }
 
   footer{
     padding:4px 22px 18px;
-    display:flex; flex-wrap:wrap; align-items:center; gap:10px 20px;
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px;
   }
   button{
     font:inherit; font-size:15px; font-weight:550;
@@ -109,6 +116,16 @@
   button:active{transform:translateY(1px)}
   button.primary{color:#062430; background:var(--accent); border-color:var(--accent)}
   button.primary:hover{background:#7ce4ff; border-color:#7ce4ff}
+
+  button.preset{
+    font-size:14px; font-weight:550; padding:7px 13px;
+    background:#0d1826; border-color:#22384c; color:#9fbdd6;
+  }
+  button.preset:hover{background:#14243a; border-color:#31536e; color:#d5e8f7}
+  button.preset.on{
+    background:#12324a; border-color:var(--accent); color:#c9f2ff;
+    box-shadow:0 0 0 1px rgba(79,216,255,.22), 0 0 16px -7px rgba(79,216,255,.6);
+  }
 
   .ctrl{
     display:flex; align-items:center; gap:8px;
@@ -138,6 +155,7 @@
   }
   .chk{display:flex; align-items:center; gap:7px; font-size:15px; color:var(--dim); cursor:pointer}
   .chk input{accent-color:#4fd8ff; width:15px; height:15px}
+  .chk.dim{opacity:.4}
 
   @media (max-width: 900px){
     main{grid-template-columns:1fr; grid-template-rows:repeat(4, minmax(168px,1fr))}
@@ -168,11 +186,11 @@
 <body>
 
 <header>
-  <h1>Underdamped oscillation <span>·</span> ζ &lt; 1</h1>
-  <div class="formula">x(t) = x₀ e<sup>−γt</sup> cos(ω<sub>d</sub>t),&nbsp; ω<sub>d</sub> = √(ω₀² − γ²),&nbsp; γ = ζω₀</div>
+  <h1><span id="regimeName">Underdamped</span> oscillation <span>·</span> <span id="regimeCond">ζ &lt; 1</span></h1>
+  <div class="formula" id="formula">x(t) = x₀ e<sup>−ζω₀t</sup> [cos(ω<sub>d</sub>t) + (ζω₀/ω<sub>d</sub>) sin(ω<sub>d</sub>t)]</div>
   <div class="chips">
     <span class="chip"><b>γ</b> <i id="rG">–</i> s⁻¹</span>
-    <span class="chip"><b>ω<sub>d</sub></b> <i id="rWd">–</i> rad/s</span>
+    <span class="chip"><b id="lWd">ω<sub>d</sub></b> <i id="rWd">–</i> rad/s</span>
     <span class="chip"><b>T<sub>d</sub></b> <i id="rTd">–</i> s</span>
     <span class="chip"><b>Q</b> <i id="rQ">–</i></span>
     <span class="chip"><b>δ</b> <i id="rDl">–</i></span>
@@ -185,25 +203,25 @@
   <section class="panel">
     <div class="tag">mass–spring–damper</div>
     <canvas id="cRig"></canvas>
-    <div class="note"><em style="color:#4fd8ff">F<sub>s</sub> = −kx</em> restoring &nbsp;·&nbsp; <em style="color:#ffb45c">F<sub>d</sub> = −bv</em> damping</div>
+    <div class="note"><em style="color:#4fd8ff">F<sub>s</sub> = −kx</em> &nbsp;·&nbsp; <em style="color:#ffb45c">F<sub>d</sub> = −bv</em></div>
   </section>
 
   <section class="panel">
     <div class="tag">displacement x(t)</div>
     <canvas id="cX"></canvas>
-    <div class="note">solid <em>—</em> x(t) &nbsp;·&nbsp; dashed <em>—</em> ±x₀e<sup>−γt</sup> &nbsp;·&nbsp; dots <em>●</em> peaks, ratio <span class="k">e<sup>−γT<sub>d</sub></sup></span></div>
+    <div class="note" id="noteX">solid <em>—</em> x(t) &nbsp;·&nbsp; dashed <em>—</em> ±x₀e<sup>−γt</sup> &nbsp;<span class="opt">·&nbsp; dots <em>●</em> peaks, ratio <span class="k">e<sup>−γT<sub>d</sub></sup></span></span></div>
   </section>
 
   <section class="panel">
     <div class="tag">energy budget</div>
     <canvas id="cE"></canvas>
-    <div class="note"><em style="color:#ffb45c">PE = ½ω₀²x²</em> &nbsp;·&nbsp; <em style="color:#4fd8ff">KE = ½v²</em> &nbsp;·&nbsp; <em style="color:#dbe7f4">E = PE + KE</em> &nbsp;(m = 1, normalised by E₀)</div>
+    <div class="note"><em style="color:#ffb45c">PE = ½ω₀²x²</em> &nbsp;·&nbsp; <em style="color:#4fd8ff">KE = ½v²</em> &nbsp;·&nbsp; <em style="color:#dbe7f4">E = PE + KE</em></div>
   </section>
 
   <section class="panel">
     <div class="tag">phase portrait</div>
     <canvas id="cP"></canvas>
-    <div class="note">x/x₀ vs v/(ω₀x₀) &nbsp;·&nbsp; the orbit spirals in by <span class="k">e<sup>−γt</sup></span> per radian of phase</div>
+    <div class="note" id="noteP">x/x₀ vs v/(ω₀x₀) &nbsp;<span class="opt">·&nbsp; the orbit spirals in by <span class="k">e<sup>−γt</sup></span> per radian of phase</span></div>
   </section>
 </main>
 
@@ -211,8 +229,12 @@
   <button id="playBtn" class="primary">Pause</button>
   <button id="resetBtn">Restart</button>
 
+  <button class="preset" data-z="0.12">underdamped</button>
+  <button class="preset" data-z="1">critical</button>
+  <button class="preset" data-z="1.8">overdamped</button>
+
   <label class="ctrl"><span class="lbl">ζ</span>
-    <input type="range" id="zeta" min="0.02" max="0.60" step="0.01" value="0.12">
+    <input type="range" id="zeta" min="0.02" max="3" step="0.01" value="0.12">
     <span class="val" id="zetaVal">0.12</span>
   </label>
 
@@ -226,9 +248,9 @@
     <span class="val" id="speedVal">1.00×</span>
   </label>
 
-  <label class="chk"><input type="checkbox" id="envChk" checked> envelope</label>
+  <label class="chk" id="envLbl"><input type="checkbox" id="envChk" checked> envelope</label>
   <label class="chk"><input type="checkbox" id="velChk" checked> velocity</label>
-  <label class="chk"><input type="checkbox" id="pkChk" checked> peak markers</label>
+  <label class="chk" id="pkLbl"><input type="checkbox" id="pkChk" checked> peak markers</label>
 </footer>
 
 <script>
@@ -237,7 +259,7 @@
 
   /* ───────────────────────── state ───────────────────────── */
   const P = {
-    x0: 1.0,          // release amplitude (units of x0)
+    x0: 1.0,          // released from rest at x = x0
     omega0: 5.0,      // natural angular frequency, rad/s
     zeta: 0.12,       // damping ratio
     speed: 1.0,       // playback rate
@@ -249,30 +271,73 @@
     showPeaks: true
   };
 
-  let D = { g: 0.6, wd: 4.96, Td: 1.267, Q: 4.17, dl: 0.76, Tloop: 10 };
+  const EPS = 0.005;          // |ζ−1| under this counts as critically damped
+  let D = {};
   let xcur = 0, vcur = 0, ecur = 1, e0 = 1;
   let RIG = null, XP = null, EP = null, PP = null;
 
   const $ = id => document.getElementById(id);
 
-  /* ───────────────────── derived quantities ───────────────────── */
+  /* ───────────────────── derived quantities ─────────────────────
+     Every regime is released from rest at x = x₀ (v(0) = 0), so the
+     initial condition does not jump when ζ passes through 1 and the
+     three closed forms join continuously.  γ = ζω₀ throughout. */
   function derive() {
     const w0 = P.omega0, z = P.zeta;
-    const g  = z * w0;                                // γ = ζω₀
-    const wd = w0 * Math.sqrt(Math.max(1e-9, 1 - z * z));
+    const g  = z * w0;
+
+    let regime, kappa;
+    if (z < 1 - EPS) {
+      regime = 'under';
+      kappa  = w0 * Math.sqrt(Math.max(1e-12, 1 - z * z));     // ω_d
+    } else if (z > 1 + EPS) {
+      regime = 'over';
+      kappa  = w0 * Math.sqrt(Math.max(1e-12, z * z - 1));     // λ
+    } else {
+      regime = 'critical';
+      kappa  = 0;
+    }
+
+    const under = regime === 'under';
+    // the slowest decay rate decides how long one sweep must last
+    const rate = regime === 'over' ? Math.max(g - kappa, 1e-6)
+               : regime === 'critical' ? w0
+               : g;
+
     return {
-      g: g,
-      wd: wd,
-      Td: 2 * Math.PI / wd,
-      Q: 1 / (2 * z),
-      dl: 2 * Math.PI * z / Math.sqrt(Math.max(1e-12, 1 - z * z)),  // log decrement
-      // sweep long enough for the envelope to fall to ~0.25 %
-      Tloop: Math.min(14, Math.max(4.5, 6 / Math.max(g, 1e-6)))
+      regime, g, kappa,
+      wd:  under ? kappa : NaN,
+      lam: regime === 'over' ? kappa : NaN,
+      Td:  under ? 2 * Math.PI / kappa : NaN,                  // no period when aperiodic
+      Q:   1 / (2 * Math.max(z, 1e-9)),
+      dl:  under ? 2 * Math.PI * z / Math.sqrt(Math.max(1e-12, 1 - z * z)) : NaN,
+      rate,
+      Tloop: Math.min(14, Math.max(4.5, 6 / Math.max(rate, 1e-6)))
     };
   }
 
-  const xOf = t => P.x0 * Math.exp(-D.g * t) * Math.cos(D.wd * t);
-  const vOf = t => -P.x0 * Math.exp(-D.g * t) * (D.g * Math.cos(D.wd * t) + D.wd * Math.sin(D.wd * t));
+  /* closed forms, released from rest — each is the exact solution of
+     ẍ + 2γẋ + ω₀²x = 0 with x(0)=x₀, ẋ(0)=0 */
+  function xOf(t) {
+    const w0 = P.omega0, g = D.g, k = D.kappa, a = P.x0;
+    if (D.regime === 'under') {
+      return a * Math.exp(-g * t) * (Math.cos(k * t) + (g / k) * Math.sin(k * t));
+    }
+    if (D.regime === 'over') {
+      return a * Math.exp(-g * t) * (Math.cosh(k * t) + (g / k) * Math.sinh(k * t));
+    }
+    return a * Math.exp(-w0 * t) * (1 + w0 * t);               // critical
+  }
+  function vOf(t) {
+    const w0 = P.omega0, g = D.g, k = D.kappa, a = P.x0;
+    if (D.regime === 'under') {
+      return -(a * w0 * w0 / k) * Math.exp(-g * t) * Math.sin(k * t);
+    }
+    if (D.regime === 'over') {
+      return -(a * w0 * w0 / k) * Math.exp(-g * t) * Math.sinh(k * t);
+    }
+    return -a * w0 * w0 * t * Math.exp(-w0 * t);               // critical
+  }
 
   /* ───────────────────────── canvas fit ───────────────────────── */
   function fit(canvas) {
@@ -290,7 +355,6 @@
     RIG = fit($('cRig')); XP = fit($('cX'));
     EP  = fit($('cE'));   PP = fit($('cP'));
   }
-
   if (window.ResizeObserver) {
     const ro = new ResizeObserver(resizeAll);
     ['cRig','cX','cE','cP'].forEach(id => ro.observe($(id)));
@@ -322,38 +386,29 @@
     ctx.closePath(); ctx.fill();
     ctx.restore();
   }
-  /* draw a symbol with a real subscript, e.g. labelSub(ctx,'F','s',...) -> F with subscript s.
+  /* draw a symbol with a real subscript, e.g. labelSub(ctx,'F','s',…) → F with subscript s.
      Canvas has no <sub>, so the tail is drawn smaller and offset down. */
   function labelSub(ctx, head, sub, x, y, align) {
-    // ctx.font looks like 'italic 500 11.5px ui-monospace, ...' — parseFloat would return NaN
+    // ctx.font reads like 'italic 500 14px ui-monospace, …' — parseFloat would give NaN
     const m = /([\d.]+)px/.exec(ctx.font);
-    const fs = m ? parseFloat(m[1]) : 11.5;
+    const fs = m ? parseFloat(m[1]) : 14;
     const subFs = fs * 0.78;
     const headFont = ctx.font;
     const headW = ctx.measureText(head).width;
     const subFont = headFont.replace(/[\d.]+px/, subFs.toFixed(1) + 'px');
-    // callers pass a mid-line y; alphabetic baseline sits a little lower
-    const baseY = y + fs * 0.34;
+    const baseY = y + fs * 0.34;          // callers pass a mid-line y
     ctx.save();
-    if (align === 'left') {
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'alphabetic';
-      ctx.font = headFont;
-      ctx.fillText(head, x, baseY);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    let startX = x;
+    if (align !== 'left') {               // right-aligned: the pair ends at x
       ctx.font = subFont;
-      ctx.fillText(sub, x + headW + 0.5, baseY + fs * 0.30);
-    } else {
-      // right-aligned: measure both pieces so the pair ends at x
-      ctx.font = subFont;
-      const subW = ctx.measureText(sub).width;
-      const startX = x - headW - subW - 0.5;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'alphabetic';
-      ctx.font = headFont;
-      ctx.fillText(head, startX, baseY);
-      ctx.font = subFont;
-      ctx.fillText(sub, startX + headW + 0.5, baseY + fs * 0.30);
+      startX = x - headW - ctx.measureText(sub).width - 0.5;
     }
+    ctx.font = headFont;
+    ctx.fillText(head, startX, baseY);
+    ctx.font = subFont;
+    ctx.fillText(sub, startX + headW + 0.5, baseY + fs * 0.30);
     ctx.restore();
   }
   // axis frame shared by the two time-series panels
@@ -368,7 +423,6 @@
     ctx.save();
     ctx.font = '14px ui-monospace, Menlo, Consolas, monospace';
 
-    // horizontal grid
     ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
     for (const v of yTicks) {
       const yy = PY(v);
@@ -380,7 +434,6 @@
       ctx.fillText(yFmt ? yFmt(v) : (zero ? '0' : (v > 0 ? v : '−' + Math.abs(v))), x0px - 9, yy);
     }
 
-    // vertical grid
     const steps = [0.25, 0.5, 1, 2, 2.5, 5, 10];
     let step = 10;
     for (const s of steps) { if (T / s <= 8) { step = s; break; } }
@@ -393,7 +446,6 @@
       ctx.fillText(step < 1 ? t.toFixed(2).replace(/0$/, '') : String(Math.round(t)), xx, y1px + 8);
     }
 
-    // axes + labels
     ctx.strokeStyle = 'rgba(150,185,215,0.45)';
     ctx.lineWidth = 1.2;
     ctx.beginPath();
@@ -494,7 +546,7 @@
     ctx.stroke();
     ctx.restore();
 
-    /* dashpot (below the mass, anchored to the floor) */
+    /* dashpot below the mass */
     const cupW = Math.max(30, massW * 0.46);
     const cupH = Math.max(20, massH * 0.42);
     const cupTop = massBot + 22;
@@ -502,17 +554,14 @@
     const floorY = cupTop + cupH + 12;
 
     ctx.save();
-    // piston rod
     ctx.strokeStyle = 'rgba(150,175,198,0.85)';
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(massCx, massBot);
     ctx.lineTo(massCx, cupTop + cupH * 0.55);
     ctx.stroke();
-    // piston plate
     ctx.fillStyle = '#7f96ad';
     ctx.fillRect(massCx - cupW * 0.34, cupTop + cupH * 0.55 - 2, cupW * 0.68, 5);
-    // cup
     ctx.fillStyle = 'rgba(255,180,92,0.10)';
     ctx.strokeStyle = 'rgba(196,214,232,0.75)';
     ctx.lineWidth = 1.6;
@@ -527,7 +576,6 @@
     ctx.lineTo(cupX + cupW, cupTop + cupH); ctx.lineTo(cupX + cupW, cupTop);
     ctx.closePath();
     ctx.fill();
-    // fluid surface
     ctx.strokeStyle = 'rgba(255,180,92,0.55)';
     ctx.lineWidth = 1.2;
     ctx.setLineDash([3, 3]);
@@ -538,7 +586,7 @@
     ctx.setLineDash([]);
     ctx.restore();
 
-    /* floor + ground hatch */
+    /* floor */
     ctx.save();
     const gx0 = wallX, gx1 = Math.min(w - 14, cupX + cupW + 60);
     ctx.strokeStyle = 'rgba(120,150,178,0.55)';
@@ -580,17 +628,14 @@
     ctx.fillText('m', massCx, yc + 1);
     ctx.restore();
 
-    /* force vectors: restoring (cyan) and damping (amber) */
+    /* force vectors — F_s = −kx toward equilibrium, F_d = −bv against motion */
     const fRow = massTop - 46;
-    const fsPx = -(massCx - xEq) * 0.85;                       // F_s = −k x  (toward equilibrium)
-    const vNorm = vcur / Math.max(D.w0 || P.omega0, 1e-6);
-    const fdPx = -vNorm * scale * 0.85;                        // F_d = −b v
+    const fsPx = -(massCx - xEq) * 0.85;
+    const fdPx = -(vcur / Math.max(P.omega0, 1e-6)) * scale * 0.85;
 
     ctx.save();
     ctx.font = 'italic 500 14px ui-monospace, Menlo, Consolas, monospace';
     ctx.textBaseline = 'middle';
-
-    // baseline through the mass
     ctx.strokeStyle = 'rgba(255,255,255,0.10)';
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(massCx - 56, fRow); ctx.lineTo(massCx + 56, fRow); ctx.stroke();
@@ -600,8 +645,7 @@
       arrow(ctx, massCx, fRow, massCx + fsPx, fRow, 7, 'rgba(79,216,255,0.92)', 1.9);
       ctx.shadowBlur = 0;
       ctx.fillStyle = 'rgba(150,220,245,0.95)';
-      const lx = massCx + fsPx + (fsPx >= 0 ? 8 : -8);
-      labelSub(ctx, 'F', 's', lx, fRow, fsPx >= 0 ? 'left' : 'right');
+      labelSub(ctx, 'F', 's', massCx + fsPx + (fsPx >= 0 ? 8 : -8), fRow, fsPx >= 0 ? 'left' : 'right');
     }
     if (P.showVel && Math.abs(fdPx) > 5) {
       const fRow2 = fRow - 24;
@@ -609,15 +653,15 @@
       arrow(ctx, massCx, fRow2, massCx + fdPx, fRow2, 7, 'rgba(255,180,92,0.92)', 1.9);
       ctx.shadowBlur = 0;
       ctx.fillStyle = 'rgba(255,205,150,0.95)';
-      const lx2 = massCx + fdPx + (fdPx >= 0 ? 8 : -8);
-      labelSub(ctx, 'F', 'd', lx2, fRow2, fdPx >= 0 ? 'left' : 'right');
+      labelSub(ctx, 'F', 'd', massCx + fdPx + (fdPx >= 0 ? 8 : -8), fRow2, fdPx >= 0 ? 'left' : 'right');
     }
     ctx.restore();
 
     /* velocity vector */
     if (P.showVel) {
       const vy = massBot + cupH + 30;
-      const vLen = Math.max(-110, Math.min(110, (vcur / Math.max(D.wd, 0.5)) * scale * 0.85));
+      const vScale = Math.max(D.kappa || 0, P.omega0 * 0.35, 1e-6);
+      const vLen = Math.max(-110, Math.min(110, (vcur / vScale) * scale * 0.85));
       ctx.save();
       ctx.strokeStyle = 'rgba(255,255,255,0.14)';
       ctx.lineWidth = 1;
@@ -654,21 +698,35 @@
     ctx.clearRect(0, 0, w, h);
 
     const T = D.Tloop;
-    const YMAX = 1.2;
     const A = timeAxes(ctx, w, h, T, [-1, -0.5, 0, 0.5, 1], 'x / x₀');
+    const under = D.regime === 'under';
 
-    /* envelope */
+    /* decay guides.
+       under: the exact bound is ±x₀(ω₀/ω_d)e^(−γt) because the amplitude of
+       cos + (γ/ω_d)sin is sqrt(1+(γ/ω_d)²) = ω₀/ω_d.
+       aperiodic: the asymptote is the slow mode, drawn on the positive side only. */
     if (P.showEnv) {
       ctx.save();
       ctx.setLineDash([5, 6]);
       ctx.lineWidth = 1.2;
       ctx.strokeStyle = 'rgba(120,170,210,0.34)';
-      for (const sgn of [1, -1]) {
+      const N = 200;
+      if (under) {
+        const amp = P.x0 * P.omega0 / Math.max(D.kappa, 1e-9);
+        for (const sgn of [1, -1]) {
+          ctx.beginPath();
+          for (let i = 0; i <= N; i++) {
+            const t = (i / N) * T;
+            const yy = A.PY(sgn * amp * Math.exp(-D.g * t));
+            i ? ctx.lineTo(A.PX(t), yy) : ctx.moveTo(A.PX(t), yy);
+          }
+          ctx.stroke();
+        }
+      } else {
         ctx.beginPath();
-        const N = 200;
         for (let i = 0; i <= N; i++) {
           const t = (i / N) * T;
-          const yy = A.PY(sgn * P.x0 * Math.exp(-D.g * t));
+          const yy = A.PY(P.x0 * Math.exp(-D.rate * t));
           i ? ctx.lineTo(A.PX(t), yy) : ctx.moveTo(A.PX(t), yy);
         }
         ctx.stroke();
@@ -676,8 +734,8 @@
       ctx.restore();
     }
 
-    /* successive positive peaks + log-decrement annotation */
-    if (P.showPeaks) {
+    /* successive peaks + log decrement — oscillatory case only */
+    if (P.showPeaks && under) {
       const NP = 4000;
       const peaks = [];
       let prev = xOf(0), prev2 = xOf(-1e-6);
@@ -692,7 +750,6 @@
         ctx.fillStyle = 'rgba(168,236,255,0.85)';
         ctx.beginPath(); ctx.arc(A.PX(t), A.PY(xv), 2.6, 0, Math.PI * 2); ctx.fill();
       }
-      // bracket the first two peaks with the decay ratio
       if (peaks.length >= 2) {
         const [t1, a1] = peaks[0], [t2, a2] = peaks[1];
         const y1 = A.PY(a1), y2 = A.PY(a2);
@@ -711,7 +768,7 @@
       ctx.restore();
     }
 
-    /* progressive trace up to the current time */
+    /* progressive trace up to now */
     const tc = Math.min(P.t, T);
     const N = 480;
     const pts = [];
@@ -787,17 +844,17 @@
                        v => (v === 0 ? '0' : v === 1 ? '1' : String(v)));
 
     const kOverM = P.omega0 * P.omega0;
-    const pe = t => kOverM * Math.pow(xOf(t), 2);          // ½k x² · 2/(ω₀²x₀²) ... normalised below
-    const ke = t => Math.pow(vOf(t), 2);
-    const norm = 1 / (kOverM * P.x0 * P.x0);               // E₀ = ½ω₀²x₀² per unit mass
+    const norm = 1 / (kOverM * P.x0 * P.x0);     // E₀ = ½ω₀²x₀² per unit mass
+    const pe = t => Math.pow(xOf(t), 2) * kOverM * norm * 0.5 * 2;  // = (x/x₀)²
+    const ke = t => Math.pow(vOf(t), 2) * norm;                     // = (v/(ω₀x₀))²
 
     const tc = Math.min(P.t, T);
     const N = 360;
 
     const series = [
-      { f: t => pe(t) * norm, color: 'rgba(255,180,92,0.95)', width: 1.8, glow: 'rgba(255,180,92,0.45)' },
-      { f: t => ke(t) * norm, color: 'rgba(79,216,255,0.95)', width: 1.8, glow: 'rgba(79,216,255,0.45)' },
-      { f: t => (pe(t) + ke(t)) * norm, color: 'rgba(226,238,248,0.92)', width: 2.2, glow: 'rgba(226,238,248,0.5)' }
+      { f: t => Math.pow(xOf(t) / P.x0, 2),            color: 'rgba(255,180,92,0.95)',  width: 1.8 },
+      { f: t => ke(t),                                  color: 'rgba(79,216,255,0.95)',  width: 1.8 },
+      { f: t => Math.pow(xOf(t) / P.x0, 2) + ke(t),     color: 'rgba(226,238,248,0.92)', width: 2.2, glow: 'rgba(226,238,248,0.5)' }
     ];
 
     for (const s of series) {
@@ -805,19 +862,19 @@
       ctx.lineJoin = 'round'; ctx.lineCap = 'round';
       ctx.strokeStyle = s.color;
       ctx.lineWidth = s.width;
-      if (s.width > 2) { ctx.shadowColor = s.glow; ctx.shadowBlur = 12; }
+      if (s.glow) { ctx.shadowColor = s.glow; ctx.shadowBlur = 12; }
       ctx.beginPath();
       for (let i = 0; i <= N; i++) {
         const t = (i / N) * tc;
-        const yy = A.PY(Math.min(1.02, s.f(t)));
+        const yy = A.PY(Math.min(1.04, s.f(t)));
         i ? ctx.lineTo(A.PX(t), yy) : ctx.moveTo(A.PX(t), yy);
       }
       ctx.stroke();
       ctx.restore();
     }
 
-    /* total-energy guide: E0 * exp(-2*gamma*t) */
-    if (P.showEnv) {
+    /* E₀e^(−2γt) is exact only for the underdamped case, so draw it only there */
+    if (P.showEnv && D.regime === 'under') {
       ctx.save();
       ctx.setLineDash([5, 6]);
       ctx.strokeStyle = 'rgba(120,170,210,0.34)';
@@ -835,7 +892,8 @@
     /* live stacked bar at the current time */
     const bx = A.x1px - 76, bw = 50, byTop = A.y0px + 4, byBot = A.y1px - 6;
     const bh = byBot - byTop;
-    const pN = Math.min(1.02, pe(P.t) * norm), kN = Math.min(1.02, ke(P.t) * norm);
+    const pN = Math.min(1.04, Math.pow(xcur / P.x0, 2));
+    const kN = Math.min(1.04, Math.pow(vcur / (P.omega0 * P.x0), 2));
     const tot = Math.max(1e-6, pN + kN);
 
     ctx.save();
@@ -843,7 +901,7 @@
     ctx.lineWidth = 1;
     roundRect(ctx, bx, byTop, bw, bh, 4);
     ctx.stroke();
-    const kHh = (kN / 1.02) * bh, pHh = (pN / 1.02) * bh;
+    const kHh = (kN / 1.04) * bh, pHh = (pN / 1.04) * bh;
     ctx.fillStyle = 'rgba(79,216,255,0.55)';
     ctx.fillRect(bx + 1, byBot - kHh, bw - 2, kHh);
     ctx.fillStyle = 'rgba(255,180,92,0.55)';
@@ -871,14 +929,12 @@
     const Y = u => cy - (u / LIM) * half;
 
     ctx.save();
-    /* grid */
     ctx.strokeStyle = 'rgba(120,152,180,0.13)';
     ctx.lineWidth = 1;
     for (const g of [-1, -0.5, 0.5, 1]) {
       ctx.beginPath(); ctx.moveTo(X(g), Y(-LIM)); ctx.lineTo(X(g), Y(LIM)); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(X(-LIM), Y(g)); ctx.lineTo(X(LIM), Y(g)); ctx.stroke();
     }
-    /* axes */
     ctx.strokeStyle = 'rgba(150,185,215,0.45)';
     ctx.lineWidth = 1.2;
     ctx.beginPath();
@@ -895,9 +951,9 @@
 
     const W0 = P.omega0;
     const uOf = t => xOf(t) / P.x0;
-    const wOf = t => vOf(t) / (W0 * P.x0);   // dimensionless velocity
+    const wOf = t => vOf(t) / (W0 * P.x0);
 
-    /* faded full orbit */
+    /* faded full path */
     ctx.save();
     ctx.strokeStyle = 'rgba(120,170,210,0.16)';
     ctx.lineWidth = 1;
@@ -909,7 +965,7 @@
     ctx.stroke();
     ctx.restore();
 
-    /* travelled orbit */
+    /* travelled path */
     const tc = Math.min(P.t, D.Tloop);
     const N = 480;
     ctx.save();
@@ -943,7 +999,6 @@
     ctx.beginPath(); ctx.arc(px, py, 4.6, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
 
-    /* origin (asymptotic rest state) */
     ctx.save();
     ctx.strokeStyle = 'rgba(150,185,215,0.55)';
     ctx.lineWidth = 1.2;
@@ -953,20 +1008,60 @@
 
   /* ───────────────────────── readouts ───────────────────────── */
   const rG = $('rG'), rWd = $('rWd'), rTd = $('rTd'), rQ = $('rQ'),
-        rDl = $('rDl'), rE = $('rE'), rX = $('rX');
+        rDl = $('rDl'), rE = $('rE'), rX = $('rX'), lWd = $('lWd');
+  const fmt = (v, d) => (isFinite(v) ? v.toFixed(d) : '—');
   let lastUI = 0;
+
   function updateUI(force) {
     const n = performance.now();
     if (!force && n - lastUI < 90) return;
     lastUI = n;
-    rG.textContent  = D.g.toFixed(2);
-    rWd.textContent = D.wd.toFixed(2);
-    rTd.textContent = D.Td.toFixed(2);
-    rQ.textContent  = D.Q.toFixed(2);
-    rDl.textContent = D.dl.toFixed(2);
+    rG.textContent  = fmt(D.g, 2);
+    if (D.regime === 'under')      { lWd.innerHTML = 'ω<sub>d</sub>'; rWd.textContent = fmt(D.wd, 2); }
+    else if (D.regime === 'over')  { lWd.innerHTML = 'λ';             rWd.textContent = fmt(D.lam, 2); }
+    else                           { lWd.innerHTML = 'ω<sub>d</sub>'; rWd.textContent = '0.00'; }
+    rTd.textContent = fmt(D.Td, 2);
+    rQ.textContent  = fmt(D.Q, 2);
+    rDl.textContent = fmt(D.dl, 2);
     rE.textContent  = e0 > 0 ? (ecur / e0).toFixed(3) : '1.000';
-    const s = xcur >= 0 ? '+' : '−';
-    rX.textContent  = s + Math.abs(xcur).toFixed(3);
+    rX.textContent  = (xcur >= 0 ? '+' : '−') + Math.abs(xcur).toFixed(3);
+  }
+
+  /* ───────────────── regime-dependent labels ───────────────── */
+  const FORMULA = {
+    under:    'x(t) = x₀ e<sup>−γt</sup> [cos(ω<sub>d</sub>t) + (γ/ω<sub>d</sub>) sin(ω<sub>d</sub>t)]',
+    critical: 'x(t) = x₀ e<sup>−ω₀t</sup> (1 + ω₀t)',
+    over:     'x(t) = x₀ e<sup>−γt</sup> [cosh(λt) + (γ/λ) sinh(λt)]'
+  };
+  const NAMEOF = { under: 'Underdamped', critical: 'Critically damped', over: 'Overdamped' };
+  const CONDOF = { under: 'ζ &lt; 1', critical: 'ζ = 1', over: 'ζ &gt; 1' };
+  const NOTEX = {
+    under:    'x(t) solid &nbsp;·&nbsp; envelope dashed &nbsp;<span class="opt">·&nbsp; dots <em>●</em> peaks, ratio <span class="k">e<sup>−γT<sub>d</sub></sup></span></span>',
+    critical: 'x(t) solid &nbsp;·&nbsp; slow mode dashed &nbsp;<span class="opt">·&nbsp; no zero crossing, fastest return</span>',
+    over:     'x(t) solid &nbsp;·&nbsp; slow mode dashed &nbsp;<span class="opt">·&nbsp; no zero crossing, slower than critical</span>'
+  };
+  const NOTEP = {
+    under:    'x/x₀ vs v/(ω₀x₀) &nbsp;<span class="opt">·&nbsp; spirals in by <span class="k">e<sup>−γt</sup></span> per radian</span>',
+    critical: 'x/x₀ vs v/(ω₀x₀) &nbsp;<span class="opt">·&nbsp; one arc into the origin, no overshoot</span>',
+    over:     'x/x₀ vs v/(ω₀x₀) &nbsp;<span class="opt">·&nbsp; one arc in, slower than critical</span>'
+  };
+
+  function syncLabels() {
+    $('regimeName').textContent = NAMEOF[D.regime];
+    $('regimeCond').innerHTML   = CONDOF[D.regime];
+    $('formula').innerHTML      = FORMULA[D.regime];
+    $('noteX').innerHTML        = NOTEX[D.regime];
+    $('noteP').innerHTML        = NOTEP[D.regime];
+
+    // successive peaks / log decrement exist only when the motion oscillates
+    const osc = D.regime === 'under';
+    $('pkLbl').classList.toggle('dim', !osc);
+    $('pkChk').disabled = !osc;
+
+    document.querySelectorAll('button.preset').forEach(b => {
+      b.classList.toggle('on', Math.abs(parseFloat(b.dataset.z) - P.zeta) < 0.005);
+    });
+    document.title = NAMEOF[D.regime] + ' oscillation — mass on a spring';
   }
 
   /* ───────────────────────── main loop ───────────────────────── */
@@ -1020,14 +1115,27 @@
 
   function onParamChange() {
     D = derive();
+    syncLabels();
     if (P.t > D.Tloop) P.t = P.t % D.Tloop;
     updateUI(true);
   }
 
-  $('zeta').addEventListener('input', e => {
+  const zetaEl = $('zeta');
+  zetaEl.addEventListener('input', e => {
     P.zeta = parseFloat(e.target.value);
     $('zetaVal').textContent = P.zeta.toFixed(2);
     onParamChange();
+  });
+
+  // presets jump to a representative ζ for each regime
+  document.querySelectorAll('button.preset').forEach(b => {
+    b.addEventListener('click', () => {
+      P.zeta = parseFloat(b.dataset.z);
+      zetaEl.value = String(P.zeta);
+      $('zetaVal').textContent = P.zeta.toFixed(2);
+      P.t = 0; P.hold = 0;
+      onParamChange();
+    });
   });
 
   $('w0').addEventListener('input', e => {
@@ -1053,6 +1161,7 @@
   /* boot */
   resizeAll();
   D = derive();
+  syncLabels();
   updateUI(true);
   requestAnimationFrame(frame);
 })();
